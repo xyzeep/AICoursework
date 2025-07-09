@@ -35,16 +35,21 @@ X = df.drop('Life expectancy', axis = 1) # inputs
 y = df['Life expectancy']                # target
 
 # splitting data into training and temp (validation + test) sets
-X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.2, random_state=42) # 0.8 for training, 0.2 for temp (80%, 20%)
+X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.2, random_state=90) # 0.8 for training, 0.2 for temp (80%, 20%)
 
-X_vali, X_test, y_vali, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=42) # 0.5 of 0.2 for each validating and testing (10%)
+X_vali, X_test, y_vali, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=90) # 0.5 of 0.2 for each validating and testing (10%)
 
 
 # checking if df contains non-numeric fields and encoding if it does
 print(df.dtypes)
 
 # initializing the model
-model = RandomForestRegressor(random_state=42)
+model = RandomForestRegressor(
+    n_estimators=200,    # no.of trees (default 100)
+    max_depth=10,        # max depth of each tree (default is None i.e. grow until pure)
+    min_samples_split=5, # minimum samples needed to split a node (default 2)
+    random_state=42      # for reproducibility
+)
 
 # training the model on the training set
 model.fit(X_train, y_train)
