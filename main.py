@@ -66,4 +66,14 @@ print("Mean Absolute Error (MAE):", mae)
 print("Mean Squared Error (MSE):", mse)
 print("R² Score:", r2)
 
+# predicting on the test set
+y_test_pred = model.predict(X_test)
 
+# final performance
+mae_test = mean_absolute_error(y_test, y_test_pred)
+mse_test = mean_squared_error(y_test, y_test_pred)
+r2_test = r2_score(y_test, y_test_pred)
+print("MODEL PERFORMANCE:")
+print("Test MAE:", mae_test)
+print("Test MSE:", mse_test)
+print("Test R² Score:", r2_test)
