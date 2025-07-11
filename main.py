@@ -5,8 +5,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-
+import matplotlib.pyplot as plt
 
 # loading the dataset
 df = pd.read_csv("LifeExpectancyData.csv")
@@ -77,3 +76,43 @@ print("MODEL PERFORMANCE:")
 print("Test MAE:", mae_test)
 print("Test MSE:", mse_test)
 print("Test R² Score:", r2_test)
+
+
+# visualization
+plt.figure(figsize=(8, 6))
+plt.scatter(y_test, y_test_pred, alpha=0.6, color='teal')
+plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--')  # Perfect line
+plt.xlabel("Actual Life Expectancy")
+plt.ylabel("Predicted Life Expectancy")
+plt.title("Actual vs Predicted Life Expectancy")
+plt.grid(True)
+plt.tight_layout()
+plt.show()
+
+# residuals
+residuals = y_test - y_test_pred
+
+plt.figure(figsize=(8, 5))
+plt.scatter(y_test_pred, residuals, color='purple', alpha=0.5)
+plt.axhline(0, color='red', linestyle='--')
+plt.xlabel("Predicted Life Expectancy")
+plt.ylabel("Residuals (Actual - Predicted)")
+plt.title("Residuals vs Predicted Values")
+plt.grid(True)
+plt.tight_layout()
+plt.show()
+
+
+# feature importance
+importances = model.feature_importances_
+feature_names = X.columns
+indices = np.argsort(importances)[::-1]
+
+plt.figure(figsize=(10, 6))
+plt.bar(range(len(importances)), importances[indices], align='center', color='royalblue')
+plt.xticks(range(len(importances)), feature_names[indices], rotation=90)
+plt.title("Feature Importances")
+plt.tight_layout()
+plt.show()
+
+
