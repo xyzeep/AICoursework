@@ -1,4 +1,3 @@
-
 # importing required libraries
 import pandas as pd
 import numpy as np
@@ -11,18 +10,19 @@ import joblib
 # loading the dataset
 df = pd.read_csv("LifeExpectancyData.csv")
 
-
 df.columns = df.columns.str.strip()
 
 # drop colums that don't contribute to prediction
-columns_to_drop = ['Country', 'Year', 'Status']
-df = df.drop(columns=[col for col in columns_to_drop if col in df.columns], errors='ignore')
+columns_to_drop = ["Country", "Year", "Status"]
+df = df.drop(
+    columns=[col for col in columns_to_drop if col in df.columns], errors="ignore"
+)
 
 # checking if there's any missing values
 print(df.isnull().sum())
 
 # droping rows where life expectancy is empty as cannot train with these
-df = df[df['Life expectancy'].notnull()]
+df = df[df["Life expectancy"].notnull()]
 
 # fill other missing values with column means
 df = df.fillna(df.mean(numeric_only=True))
@@ -31,13 +31,17 @@ df = df.fillna(df.mean(numeric_only=True))
 print(df.isnull().sum())
 
 # separating featues and target
-X = df.drop('Life expectancy', axis = 1) # inputs
-y = df['Life expectancy']                # target
+X = df.drop("Life expectancy", axis=1)  # inputs
+y = df["Life expectancy"]  # target
 
 # splitting data into training and temp (validation + test) sets
-X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.2, random_state=90) # 0.8 for training, 0.2 for temp (80%, 20%)
+X_train, X_temp, y_train, y_temp = train_test_split(
+    X, y, test_size=0.2, random_state=90
+)  # 0.8 for training, 0.2 for temp (80%, 20%)
 
-X_vali, X_test, y_vali, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=90) # 0.5 of 0.2 for each validating and testing (10%)
+X_vali, X_test, y_vali, y_test = train_test_split(
+    X_temp, y_temp, test_size=0.5, random_state=90
+)  # 0.5 of 0.2 for each validating and testing (10%)
 
 
 # checking if df contains non-numeric fields and encoding if it does
@@ -45,18 +49,18 @@ print(df.dtypes)
 
 # initializing the model
 model = RandomForestRegressor(
-    n_estimators=200,    # no.of trees (default 100)
-    max_depth=10,        # max depth of each tree (default is None i.e. grow until pure)
-    min_samples_split=5, # minimum samples needed to split a node (default 2)
-    random_state=90      # for reproducibility
+    n_estimators=200,  # no.of trees (default 100)
+    max_depth=10,  # max depth of each tree (default is None i.e. grow until pure)
+    min_samples_split=5,  # minimum samples needed to split a node (default 2)
+    random_state=90,  # for reproducibility
 )
 
 # training the model on the training set
 model.fit(X_train, y_train)
-#saving the model
-joblib.dump(model, 'rf_model.pkl')
+# saving the model
+joblib.dump(model, "rf_model.pkl")  # save the model
 
-# predicting and evaluating
+# evaluating
 y_pred = model.predict(X_vali)
 
 # evaluation of the model using MAE, MSE, R squared
@@ -83,8 +87,10 @@ print("Test R² Score:", r2_test)
 
 # visualization
 plt.figure(figsize=(8, 6))
-plt.scatter(y_test, y_test_pred, alpha=0.6, color='teal')
-plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--')  # Perfect line
+plt.scatter(y_test, y_test_pred, alpha=0.6, color="teal")
+plt.plot(
+    [y_test.min(), y_test.max()], [y_test.min(), y_test.max()], "r--"
+)  # Perfect line
 plt.xlabel("Actual Life Expectancy")
 plt.ylabel("Predicted Life Expectancy")
 plt.title("Actual vs Predicted Life Expectancy")
@@ -96,8 +102,8 @@ plt.show()
 residuals = y_test - y_test_pred
 
 plt.figure(figsize=(8, 5))
-plt.scatter(y_test_pred, residuals, color='purple', alpha=0.5)
-plt.axhline(0, color='red', linestyle='--')
+plt.scatter(y_test_pred, residuals, color="purple", alpha=0.5)
+plt.axhline(0, color="red", linestyle="--")
 plt.xlabel("Predicted Life Expectancy")
 plt.ylabel("Residuals (Actual - Predicted)")
 plt.title("Residuals vs Predicted Values")
@@ -112,10 +118,10 @@ feature_names = X.columns
 indices = np.argsort(importances)[::-1]
 
 plt.figure(figsize=(10, 6))
-plt.bar(range(len(importances)), importances[indices], align='center', color='royalblue')
+plt.bar(
+    range(len(importances)), importances[indices], align="center", color="royalblue"
+)
 plt.xticks(range(len(importances)), feature_names[indices], rotation=90)
 plt.title("Feature Importances")
 plt.tight_layout()
 plt.show()
-
-
