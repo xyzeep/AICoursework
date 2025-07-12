@@ -6,6 +6,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 import matplotlib.pyplot as plt
+import joblib
 
 # loading the dataset
 df = pd.read_csv("LifeExpectancyData.csv")
@@ -47,11 +48,13 @@ model = RandomForestRegressor(
     n_estimators=200,    # no.of trees (default 100)
     max_depth=10,        # max depth of each tree (default is None i.e. grow until pure)
     min_samples_split=5, # minimum samples needed to split a node (default 2)
-    random_state=42      # for reproducibility
+    random_state=90      # for reproducibility
 )
 
 # training the model on the training set
 model.fit(X_train, y_train)
+#saving the model
+joblib.dump(model, 'rf_model.pkl')
 
 # predicting and evaluating
 y_pred = model.predict(X_vali)
