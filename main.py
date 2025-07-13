@@ -30,6 +30,9 @@ df = df.fillna(df.mean(numeric_only=True))
 # checking if that worked
 print(df.isnull().sum())
 
+# saving the cleaned dataset as I might need it
+df.to_csv("cleaned_life_expectancy_data.csv", index=False)
+
 # separating featues and target
 X = df.drop("Life expectancy", axis=1)  # inputs
 y = df["Life expectancy"]  # target
@@ -60,6 +63,10 @@ model.fit(X_train, y_train)
 # saving the model
 joblib.dump(model, "rf_model.pkl")  # save the model
 
+# saving test data to CSV for visualization file
+X_test.to_csv("X_test.csv", index=False)
+y_test.to_csv("y_test.csv", index=False)
+
 # evaluating
 y_pred = model.predict(X_vali)
 
@@ -75,6 +82,9 @@ print("R² Score:", r2)
 # predicting on the test set
 y_test_pred = model.predict(X_test)
 
+# saving predictions for visualization or later use
+pd.DataFrame(y_test_pred, columns=["Predicted"]).to_csv("y_pred_test.csv", index=False)
+
 # final performance
 mae_test = mean_absolute_error(y_test, y_test_pred)
 mse_test = mean_squared_error(y_test, y_test_pred)
@@ -83,45 +93,3 @@ print("MODEL PERFORMANCE:")
 print("Test MAE:", mae_test)
 print("Test MSE:", mse_test)
 print("Test R² Score:", r2_test)
-
-
-# visualization
-plt.figure(figsize=(8, 6))
-plt.scatter(y_test, y_test_pred, alpha=0.6, color="teal")
-plt.plot(
-    [y_test.min(), y_test.max()], [y_test.min(), y_test.max()], "r--"
-)  # Perfect line
-plt.xlabel("Actual Life Expectancy")
-plt.ylabel("Predicted Life Expectancy")
-plt.title("Actual vs Predicted Life Expectancy")
-plt.grid(True)
-plt.tight_layout()
-plt.show()
-
-# residuals
-residuals = y_test - y_test_pred
-
-plt.figure(figsize=(8, 5))
-plt.scatter(y_test_pred, residuals, color="purple", alpha=0.5)
-plt.axhline(0, color="red", linestyle="--")
-plt.xlabel("Predicted Life Expectancy")
-plt.ylabel("Residuals (Actual - Predicted)")
-plt.title("Residuals vs Predicted Values")
-plt.grid(True)
-plt.tight_layout()
-plt.show()
-
-
-# feature importance
-importances = model.feature_importances_
-feature_names = X.columns
-indices = np.argsort(importances)[::-1]
-
-plt.figure(figsize=(10, 6))
-plt.bar(
-    range(len(importances)), importances[indices], align="center", color="royalblue"
-)
-plt.xticks(range(len(importances)), feature_names[indices], rotation=90)
-plt.title("Feature Importances")
-plt.tight_layout()
-plt.show()

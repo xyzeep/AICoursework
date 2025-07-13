@@ -1,7 +1,9 @@
 import streamlit as st
 import numpy as np
+import pandas as pd
 import joblib
 from streamlit_option_menu import option_menu
+import plotly.express as px
 
 # Load the trained model
 model = joblib.load("rf_model.pkl")
@@ -18,10 +20,10 @@ with st.sidebar:  # Custom title with bigger font
     )
     selected = option_menu(
         "",
-        ["Model Info", "Predict", "Code Snippets", "About"],  # Tabs
-        icons=["bar-chart", "activity", "code-slash", "info"],  # Optional icons
-        menu_icon=" ",  # Top icon
-        default_index=0,  # Default tab
+        ["Model Info", "Predict", "Visualization", "Code Snippets", "About"],  # Tabs
+        icons=["bar-chart", "activity", "display", "code-slash", "info"],  # Optional icons
+        menu_icon=" ",  # top icon
+        default_index=0,  # default tab
         styles={
             "container": {"padding": "10px", "background-color": "#262730"},
             "icon": {"color": "white", "font-size": "20px"},
@@ -37,6 +39,9 @@ with st.sidebar:  # Custom title with bigger font
             },
         },
     )
+
+# ------------------------------------------------------------------
+
 
 # model info Page
 if selected == "Model Info":
@@ -95,12 +100,16 @@ if selected == "Model Info":
     st.metric("Mean Squared Error (MSE)", "3.15")
     st.metric("R² Score", "0.9658")
 
+
+# ------------------------------------------------------------------
+
 # prediction Page
 elif selected == "Predict":
     st.title("Predict Life Expectancy")
     st.write("### Enter only a few key values (others are pre-filled)")
 
     col1, col2 = st.columns(2)
+    # ------------------------------------------------------------------
     with col1:
         hiv_aids = st.number_input("HIV/AIDS Deaths (0–4)", value=0.1)
         adult_mortality = st.number_input("Adult Mortality", value=250.0)
@@ -157,8 +166,131 @@ elif selected == "Predict":
         st.success(f"Predicted Life Expectancy: {prediction:.2f} years")
 
 
-# code snippet page
+# ------------------------------------------------------------------
 
+# visualization page
+if selected == "Visualization":
+    st.title("Scatter Plot: Actual vs Predicted Life Expectancy")
+
+    # Load saved test targets and predictions
+    y_test = pd.read_csv("y_test.csv")
+    y_pred = pd.read_csv("y_pred_test.csv")
+
+    # Prepare DataFrame for plotting
+    df_plot = pd.DataFrame({
+        "Actual": y_test.squeeze(),  # remove extra dimension if any
+        "Predicted": y_pred.squeeze()
+        })
+    fig = px.scatter(
+        df_plot,
+        x="Actual",
+        y="Predicted",
+        title="Actual vs Predicted Life Expectancy",
+        labels={"Actual": "Actual Life Expectancy", "Predicted": "Predicted Life Expectancy"},
+        trendline="ols",
+        )
+
+    fig.add_shape(
+        type="line",
+        x0=df_plot["Actual"].min(),
+        y0=df_plot["Actual"].min(),
+        x1=df_plot["Actual"].max(),
+        y1=df_plot["Actual"].max(),
+        line=dict(color="red", dash="dash"),
+        )
+
+    fig.update_layout(
+        plot_bgcolor="#323C52",
+        paper_bgcolor="#323C52"
+        )
+
+    st.plotly_chart(fig, use_container_width=True)
+
+    st.markdown("---")
+    st.title("Feature Importance (Bar Chart)")
+
+    # Load model and test features
+    model = joblib.load("rf_model.pkl")
+    X_test = pd.read_csv("X_test.csv")
+
+    # Get feature importances
+    importances = model.feature_importances_
+    feature_names = X_test.columns
+
+    # Create DataFrame
+    importance_df = pd.DataFrame({
+        "Feature": feature_names,
+        "Importance": importances
+    }).sort_values(by="Importance", ascending=False)
+
+    # Bar chart using Plotly
+    fig2 = px.bar(
+        importance_df,
+        x="Importance",
+        y="Feature",
+        orientation="h",
+        title="Feature Importance (Random Forest)",
+        color="Importance",
+        color_continuous_scale="Blues",
+    )
+
+    fig2.update_layout(
+        yaxis=dict(autorange="reversed"),
+        plot_bgcolor="#323C52",
+        paper_bgcolor="#323C52",
+        font=dict(color="white"),
+    )
+
+    st.plotly_chart(fig2, use_container_width=True)
+
+    st.markdown("---")
+    st.title("Correlation Heatmap (Top 5 Features + Life Expectancy)")
+
+    # Load model, test features, and cleaned dataset
+    model = joblib.load("rf_model.pkl")
+    X_test = pd.read_csv("X_test.csv")
+    df_cleaned = pd.read_csv("cleaned_life_expectancy_data.csv")
+
+    # Get top 5 most important feature names
+    importances = model.feature_importances_
+    feature_names = X_test.columns
+    top_indices = np.argsort(importances)[-5:]  # Top 5
+    top_features = feature_names[top_indices].tolist()
+
+    # Add target column to list
+    selected_columns = top_features + ["Life expectancy"]
+
+    # Compute correlation matrix for selected columns
+    corr_small = df_cleaned[selected_columns].corr()
+
+    # Create heatmap
+    import plotly.figure_factory as ff
+
+    fig3 = ff.create_annotated_heatmap(
+        z=np.round(corr_small.values, 2),
+        x=list(corr_small.columns),
+        y=list(corr_small.columns),
+        colorscale="YlGnBu",
+        showscale=True,
+        hoverinfo="z"
+    )
+
+    fig3.update_layout(
+        title_text="Correlation Heatmap (top 5 features)",
+        xaxis=dict(tickangle=45),
+        plot_bgcolor="#323C52",
+        paper_bgcolor="#323C52",
+        font=dict(color="white"),
+        height=500
+    )
+
+    st.plotly_chart(fig3, use_container_width=True)
+
+
+
+# ------------------------------------------------------------------
+
+# code snippet page
 elif selected == "Code Snippets":
     st.markdown("""### Libraries""")
     st.code(
@@ -274,6 +406,12 @@ print("Test R² Score:", r2_test)
         language="python",
     )
 
+
+
+# ------------------------------------------------------------------
+
+
+# about page
 
 elif selected == "About":
     st.markdown(
